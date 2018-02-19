@@ -4,15 +4,14 @@ package com.blackkara.dt157
 import android.bluetooth.BluetoothDevice
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import kotlinx.android.synthetic.main.fragment_scan.*
 
 
 class ScanResultsFragment : Fragment(), ScanResultsAdapter.Listener {
     private lateinit var mListener: Listener
-    private lateinit var mRecyclerViewScanResults: RecyclerView
     private lateinit var mScanResults: ArrayList<BluetoothDevice>
     private lateinit var mScanResultsAdapter: ScanResultsAdapter
 
@@ -31,17 +30,16 @@ class ScanResultsFragment : Fragment(), ScanResultsAdapter.Listener {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        mScanResults = arguments.getParcelableArrayList(PARAM)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
+            inflater.inflate(R.layout.fragment_scan, container, false)
 
-        val layout = inflater.inflate(R.layout.fragment_scan, container, false)
-        mRecyclerViewScanResults = layout.findViewById(R.id.recyclerViewScanResults)
+    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+        mScanResults = arguments.getParcelableArrayList(PARAM)
         mScanResultsAdapter = ScanResultsAdapter(mScanResults, this)
-        return layout
+        recyclerViewScanResults.adapter = mScanResultsAdapter
     }
 
     override fun onDeviceSelected(device: BluetoothDevice) {
         mListener.onDeviceSelected(device)
     }
-
 }
