@@ -8,16 +8,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_scan.*
+import org.greenrobot.eventbus.EventBus
 
 
 class ScanResultsFragment : Fragment(), ScanResultsAdapter.Listener {
-    private lateinit var mListener: Listener
     private lateinit var mScanResults: ArrayList<BluetoothDevice>
     private lateinit var mScanResultsAdapter: ScanResultsAdapter
-
-    interface Listener{
-        fun onDeviceSelected(device: BluetoothDevice)
-    }
 
     companion object {
         private val PARAM = "PARAM_RESULT"
@@ -28,18 +24,31 @@ class ScanResultsFragment : Fragment(), ScanResultsAdapter.Listener {
             fragment.arguments = arguments
             return fragment
         }
+
+        fun newInstance(): ScanResultsFragment{
+            return ScanResultsFragment()
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
             inflater.inflate(R.layout.fragment_scan, container, false)
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        mScanResults = arguments.getParcelableArrayList(PARAM)
+        if(arguments != null && arguments.containsKey(PARAM)){
+            mScanResults = arguments.getParcelableArrayList(PARAM)
+        } else{
+            mScanResults = ArrayList<BluetoothDevice>()
+        }
+
         mScanResultsAdapter = ScanResultsAdapter(mScanResults, this)
         recyclerViewScanResults.adapter = mScanResultsAdapter
     }
 
     override fun onDeviceSelected(device: BluetoothDevice) {
-        mListener.onDeviceSelected(device)
+        EventBus.getDefault().post(BluetoothDeviceSelectedEvent(device))
+    }
+
+    fun addDevice(device: BluetoothDevice){
+        mScanResultsAdapter.addDevice(device)
     }
 }

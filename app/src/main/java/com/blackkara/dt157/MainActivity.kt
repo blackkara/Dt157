@@ -13,7 +13,7 @@ import android.widget.Button
 import android.widget.SimpleExpandableListAdapter
 
 
-class MainActivity : AppCompatActivity(), ScanResultsFragment.Listener {
+class MainActivity : AppCompatActivity()  {
 
     val mTextScan: String by lazy {
         getString(R.string.scan)
@@ -27,9 +27,6 @@ class MainActivity : AppCompatActivity(), ScanResultsFragment.Listener {
         getString(R.string.stop)
     }
 
-    override fun onDeviceSelected(device: BluetoothDevice) {
-
-    }
 
     private val TAG = "DT-157"
     private val REQUEST_ENABLE_BT = 2000

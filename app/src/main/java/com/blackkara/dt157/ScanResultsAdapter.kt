@@ -2,6 +2,7 @@ package com.blackkara.dt157
 
 import android.bluetooth.BluetoothDevice
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,15 +36,22 @@ class ScanResultsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ScanResultsViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.scan_result_item, parent)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.scan_result_item, parent,false)
         return ScanResultsViewHolder(view)
     }
 
     class ScanResultsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
         fun bind(device: BluetoothDevice, listener: Listener) = with(itemView){
-            itemView.textViewDeviceName.text = device.name
-            itemView.textViewDeviceAddress.text = device.address
-            setOnClickListener{listener.onDeviceSelected(device)}
+            itemView.textViewDeviceName.text = if(device.name != null) device.name else "UNKNOWN DEVICE"
+            itemView.textViewDeviceAddress.text = if(device.address != null) device.address else "UNKNOWN ADDRESS"
+
+            setOnClickListener{
+                if(device.address != null){
+                    listener.onDeviceSelected(device)
+                } else{
+                    Log.d(Constants.TAG, "Not possible to connect")
+                }
+            }
         }
     }
 }

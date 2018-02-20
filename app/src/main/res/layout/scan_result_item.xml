@@ -11,7 +11,7 @@
         android:id="@+id/textViewDeviceName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        tools:text="N a m e"
+        tools:text="$UNKNOWN DEVICE"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -20,9 +20,11 @@
         android:id="@+id/textViewDeviceAddress"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        tools:text="A d d r e s s"
+        tools:text="$UNKNOWN ADDRESS"
+        android:textSize="10sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewDeviceName" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDeviceName"
+        tools:ignore="SmallSp" />
 </android.support.constraint.ConstraintLayout>
