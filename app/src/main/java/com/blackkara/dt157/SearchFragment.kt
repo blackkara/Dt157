@@ -11,18 +11,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.blackkara.dt157.Constants.TAG
+import com.blackkara.dt157.cem.BaseIcttDataObj
+import com.blackkara.dt157.cem.BleDataHandleClass
+import com.blackkara.dt157.cem.BleMeterDataClass
+import com.blackkara.dt157.events.BluetoothDeviceSelectedEvent
 import kotlinx.android.synthetic.main.fragment_search.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
-
-
-
-
-
-
-
-
 
 class SearchFragment : Fragment() {
 
@@ -33,7 +29,6 @@ class SearchFragment : Fragment() {
     }
 
     private val mTextScan: String by lazy { getString(R.string.scan) }
-    private val mTextScanning: String by lazy { getString(R.string.scanning) }
     private val mTextStop: String by lazy { getString(R.string.stop) }
 
     private var mBluetoothAdapter: BluetoothAdapter? = null
@@ -46,6 +41,9 @@ class SearchFragment : Fragment() {
     private var mScanning = false
 
     private var mScanResultsFragment: ScanResultsFragment? = null
+    
+    var mData : BleDataHandleClass? = null
+    var mMeter : BleMeterDataClass? = null
 
     private fun showSearchResults(){
         val tag = ScanResultsFragment::class.java.simpleName
@@ -83,7 +81,22 @@ class SearchFragment : Fragment() {
         }
 
         showSearchResults()
+        
+        mData = BleDataHandleClass.getInstance()
+        mData?.setOnBluetoothDataCallback(object : BleDataHandleClass.BluetoothDataCallback {
+            override fun onCompleteBytes(var1: ByteArray?) {
+                mMeter?.LoadData(var1)
+            }
+        })
+
+        mMeter = BleMeterDataClass.getInstance()
+        mMeter?.setOnDataCallback(object : BleMeterDataClass.BleMeterDataCallback {
+            override fun onMeterData(var1: BaseIcttDataObj?) {
+                var a = 1
+            }
+        })
     }
+
 
     override fun onResume() {
         super.onResume()
@@ -179,86 +192,22 @@ class SearchFragment : Fragment() {
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            val services = gatt.services
-            Log.i(TAG, "onServicesDiscovered " + services.toString())
-
             gatt.services.forEach {
                 val serviceUUID = it.uuid
                 Log.d(TAG, "SERVICE $serviceUUID")
                 it.characteristics.forEach {
-                    //
                     val characteristic = it
-                    val characteristicUUID = it.uuid
                     val properties = it.properties
-
-                    it.descriptors.forEach {
-                        if (properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0) {
-                            it.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                            Log.d(TAG, "CHARACTERISTIC $characteristicUUID SUPPORTS NOTIFY")
-                        } else if(properties and BluetoothGattCharacteristic.PROPERTY_INDICATE != 0){
-                            it.value = BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
-                            Log.d(TAG, "CHARACTERISTIC $characteristicUUID SUPPORTS INDICATE")
-                        } else{
-                            Log.d(TAG, "CHARACTERISTIC $characteristicUUID DOES NOT NOTIFY OR INDICATE")
-
-                        }
-
-
-
-                        if(gatt.writeDescriptor(it)){
-                            Log.d(TAG, "CHARACTERISTIC NOTIFICATION SUCCEEDED")
-                        } else{
-                            Log.d(TAG, "CHARACTERISTIC NOTIFICATION FAILED")
+                    if(properties == 16){
+                        gatt.setCharacteristicNotification(characteristic, true)
+                        it.descriptors.forEach {
+                            val descriptor = it
+                            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+                            gatt.writeDescriptor(descriptor)
                         }
                     }
-
-                    gatt.setCharacteristicNotification(characteristic, true)
-                    gatt.readCharacteristic(characteristic)
                 }
             }
-        }
-
-        override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-            Log.i(TAG, "onCharacteristicRead")
-        }
-
-        override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
-            super.onCharacteristicChanged(gatt, characteristic)
-            Log.i(TAG, "onCharacteristicChanged")
-        }
-
-        override fun onCharacteristicWrite(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?, status: Int) {
-            super.onCharacteristicWrite(gatt, characteristic, status)
-            Log.i(TAG, "onCharacteristicWrite")
-        }
-
-        override fun onDescriptorRead(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
-            super.onDescriptorRead(gatt, descriptor, status)
-            Log.i(TAG, "onDescriptorRead")
-        }
-
-        override fun onMtuChanged(gatt: BluetoothGatt?, mtu: Int, status: Int) {
-            super.onMtuChanged(gatt, mtu, status)
-        }
-
-        override fun onDescriptorWrite(gatt: BluetoothGatt?, descriptor: BluetoothGattDescriptor?, status: Int) {
-            super.onDescriptorWrite(gatt, descriptor, status)
-        }
-
-        override fun onPhyRead(gatt: BluetoothGatt?, txPhy: Int, rxPhy: Int, status: Int) {
-            super.onPhyRead(gatt, txPhy, rxPhy, status)
-        }
-
-        override fun onPhyUpdate(gatt: BluetoothGatt?, txPhy: Int, rxPhy: Int, status: Int) {
-            super.onPhyUpdate(gatt, txPhy, rxPhy, status)
-        }
-
-        override fun onReadRemoteRssi(gatt: BluetoothGatt?, rssi: Int, status: Int) {
-            super.onReadRemoteRssi(gatt, rssi, status)
-        }
-
-        override fun onReliableWriteCompleted(gatt: BluetoothGatt?, status: Int) {
-            super.onReliableWriteCompleted(gatt, status)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.blackkara.dt157
+package com.blackkara.dt157.events
 
 import android.bluetooth.BluetoothDevice
 
