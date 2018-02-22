@@ -1,4 +1,4 @@
-package com.blackkara.dt157
+package com.blackkara.dt157.ui
 
 
 import android.bluetooth.BluetoothDevice
@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.blackkara.dt157.R
 import com.blackkara.dt157.events.BluetoothDeviceSelectedEvent
 import kotlinx.android.synthetic.main.fragment_scan.*
 import org.greenrobot.eventbus.EventBus
@@ -18,7 +19,7 @@ class ScanResultsFragment : Fragment(), ScanResultsAdapter.Listener {
 
     companion object {
         private val PARAM = "PARAM_RESULT"
-        fun newInstance(result: ArrayList<BluetoothDevice>): ScanResultsFragment{
+        fun newInstance(result: ArrayList<BluetoothDevice>): ScanResultsFragment {
             val fragment = ScanResultsFragment()
             val arguments = Bundle()
             arguments.putParcelableArrayList(PARAM, result)
@@ -26,7 +27,7 @@ class ScanResultsFragment : Fragment(), ScanResultsAdapter.Listener {
             return fragment
         }
 
-        fun newInstance(): ScanResultsFragment{
+        fun newInstance(): ScanResultsFragment {
             return ScanResultsFragment()
         }
     }

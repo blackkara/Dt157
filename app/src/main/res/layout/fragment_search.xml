@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.blackkara.dt157.SearchFragment">
+    tools:context="com.blackkara.dt157.ui.SearchFragment">
 
     <FrameLayout
         android:id="@+id/frameLayoutScanResults"

@@ -1,6 +1,6 @@
 package com.blackkara.dt157.cem;
 
-import com.blackkara.dt157.Util;
+import com.blackkara.dt157.Dt157Util;
 
 import java.math.BigInteger;
 
@@ -17,7 +17,7 @@ public class ICTTObj extends BaseIcttDataObj {
 
     public ICTTObj(byte[] var1) {
         if(var1 != null && var1.length > 0) {
-            String var2 = Util.dec_hex(var1);
+            String var2 = Dt157Util.dec_hex(var1);
             if(this.bytesBoolean(var2).booleanValue()) {
                 this.setDataObjMode(DataObjMode.ICTTObjMode);
                 String var3 = Integer.toBinaryString(Integer.parseInt(var2.substring(14, 18), 16));

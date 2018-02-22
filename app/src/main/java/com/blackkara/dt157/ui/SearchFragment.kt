@@ -1,6 +1,9 @@
-package com.blackkara.dt157
+package com.blackkara.dt157.ui
 
-import android.bluetooth.*
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanSettings
@@ -12,10 +15,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.blackkara.dt157.Constants.TAG
+import com.blackkara.dt157.Constants
+import com.blackkara.dt157.Dt157BluetoothGattCallback
+import com.blackkara.dt157.Dt157BluetoothScanListener
+import com.blackkara.dt157.R
 import com.blackkara.dt157.cem.BaseIcttDataObj
-import com.blackkara.dt157.cem.BleDataHandleClass
 import com.blackkara.dt157.cem.BleMeterDataClass
+import com.blackkara.dt157.Dt157DataHandler
 import com.blackkara.dt157.events.BluetoothDeviceFoundEvent
 import com.blackkara.dt157.events.BluetoothDeviceSelectedEvent
 import com.blackkara.dt157.events.BluetoothDevicesFoundEvent
@@ -25,56 +31,30 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 class SearchFragment : Fragment() {
-
-    companion object {
-        fun newInstance(): SearchFragment = SearchFragment()
-    }
-
     private val mTextScan: String by lazy { getString(R.string.scan) }
     private val mTextStop: String by lazy { getString(R.string.stop) }
-
+    private val mHandler = Handler()
+    private var mScanning = false
+    private var mScanResultsFragment: ScanResultsFragment? = null
+    private var mData : Dt157DataHandler? = null
+    private var mMeter : BleMeterDataClass? = null
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private var mBluetoothGatt: BluetoothGatt? = null
     private lateinit var mBluetoothManager: BluetoothManager
     private lateinit var mBluetoothScanner: BluetoothLeScanner
     private lateinit var mBluetoothScanSettings: ScanSettings
     private lateinit var mBluetoothScanFilters: MutableList<ScanFilter>
-    private var mBluetoothScanListener: BluetoothScanListener? = null
-
-    private val mHandler = Handler()
-    private var mScanning = false
-
-    private var mScanResultsFragment: ScanResultsFragment? = null
-    
-    private var mData : BleDataHandleClass? = null
-    private var mMeter : BleMeterDataClass? = null
-
-
-
-    private fun showSearchResults(){
-        val tag = ScanResultsFragment::class.java.simpleName
-        val fragmentManager = activity.supportFragmentManager
-
-        val searchResultsFragment = fragmentManager.findFragmentByTag(tag)
-        if(searchResultsFragment == null){
-            mScanResultsFragment = ScanResultsFragment.newInstance()
-            val transaction = fragmentManager.beginTransaction()
-            transaction.add(R.id.frameLayoutScanResults, mScanResultsFragment, tag)
-            transaction.commit()
-        }
-    }
+    private var mBluetoothScanListener: Dt157BluetoothScanListener? = null
+    private var mBluetoothGattCallback: Dt157BluetoothGattCallback? = null
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        mBluetoothManager = context.applicationContext.
-                getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        mBluetoothManager = context.applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         mBluetoothAdapter = mBluetoothManager.adapter
         mBluetoothScanner = mBluetoothAdapter!!.bluetoothLeScanner
         mBluetoothScanFilters = ArrayList()
-        mBluetoothScanSettings  = ScanSettings.Builder()
-                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                .build()
-
-        mBluetoothScanListener = BluetoothScanListener()
+        mBluetoothScanSettings  = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
+        mBluetoothScanListener = Dt157BluetoothScanListener()
+        mBluetoothGattCallback = Dt157BluetoothGattCallback()
 
         buttonScan.setOnClickListener {
             if(!mScanning){
@@ -89,8 +69,8 @@ class SearchFragment : Fragment() {
         }
 
         showSearchResults()
-        
-        mData = BleDataHandleClass.getInstance()
+
+        mData = Dt157DataHandler.getInstance()
         mData?.setOnBluetoothDataCallback { var1 -> mMeter?.LoadData(var1) }
 
         mMeter = BleMeterDataClass.getInstance()
@@ -101,6 +81,18 @@ class SearchFragment : Fragment() {
         })
     }
 
+    private fun showSearchResults(){
+        val tag = ScanResultsFragment::class.java.simpleName
+        val fragmentManager = activity.supportFragmentManager
+
+        val searchResultsFragment = fragmentManager.findFragmentByTag(tag)
+        if(searchResultsFragment == null){
+            mScanResultsFragment = ScanResultsFragment.newInstance()
+            val transaction = fragmentManager.beginTransaction()
+            transaction.add(R.id.frameLayoutScanResults, mScanResultsFragment, tag)
+            transaction.commit()
+        }
+    }
 
     override fun onResume() {
         super.onResume()
@@ -166,40 +158,11 @@ class SearchFragment : Fragment() {
 
     private fun connectToDevice(device: BluetoothDevice) {
         if (mBluetoothGatt == null) {
-            mBluetoothGatt = device.connectGatt(context.applicationContext, false, gattCallback)
+            mBluetoothGatt = device.connectGatt(
+                    context.applicationContext,
+                    false,
+                    mBluetoothGattCallback)
             scanLeDevice(false)// will stop after first device detection
-        }
-    }
-
-    private val gattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            when (newState) {
-                BluetoothProfile.STATE_CONNECTED -> {
-                    Log.i(TAG, "GATT state changed : STATE_CONNECTED")
-                    gatt.discoverServices()
-                }
-                BluetoothProfile.STATE_DISCONNECTED -> Log.e(TAG, "GATT state changed : STATE DISCONNECTED")
-                else -> Log.e(TAG, "GATT state changed : OTHER")
-            }
-        }
-
-        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            gatt.services.forEach {
-                val serviceUUID = it.uuid
-                Log.d(TAG, "SERVICE $serviceUUID")
-                it.characteristics.forEach {
-                    val characteristic = it
-                    val properties = it.properties
-                    if(properties == 16){
-                        gatt.setCharacteristicNotification(characteristic, true)
-                        it.descriptors.forEach {
-                            val descriptor = it
-                            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
-                            gatt.writeDescriptor(descriptor)
-                        }
-                    }
-                }
-            }
         }
     }
 }

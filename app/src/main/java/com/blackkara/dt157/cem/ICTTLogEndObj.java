@@ -1,6 +1,6 @@
 package com.blackkara.dt157.cem;
 
-import com.blackkara.dt157.Util;
+import com.blackkara.dt157.Dt157Util;
 
 /**
  * Created by blackkara on 2/21/2018.
@@ -8,7 +8,7 @@ import com.blackkara.dt157.Util;
 
 public class ICTTLogEndObj extends BaseIcttDataObj {
     public void ICTTLogEndObj(byte[] var1) {
-        if(var1 != null && var1.length > 0 && this.bytesBoolean(Util.dec_hex(var1)).booleanValue()) {
+        if(var1 != null && var1.length > 0 && this.bytesBoolean(Dt157Util.dec_hex(var1)).booleanValue()) {
             this.setDataObjMode(DataObjMode.ICTTDataLoggerEndObjMode);
         }
     }

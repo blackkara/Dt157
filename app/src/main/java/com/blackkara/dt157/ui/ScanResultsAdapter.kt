@@ -1,4 +1,4 @@
-package com.blackkara.dt157
+package com.blackkara.dt157.ui
 
 import android.bluetooth.BluetoothDevice
 import android.support.v7.widget.RecyclerView
@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.blackkara.dt157.Constants
+import com.blackkara.dt157.R
 import kotlinx.android.synthetic.main.scan_result_item.view.*
 
 /**

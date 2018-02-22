@@ -4,7 +4,7 @@ package com.blackkara.dt157;
  * Created by blackkara on 2/21/2018.
  */
 
-public class Util {
+public class Dt157Util {
     public static String dec_hex(byte[] var0) {
         String var1;
         if(var0 != null && var0.length > 0) {

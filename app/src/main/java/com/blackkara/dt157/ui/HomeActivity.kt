@@ -1,7 +1,8 @@
-package com.blackkara.dt157
+package com.blackkara.dt157.ui
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.blackkara.dt157.R
 
 class HomeActivity : AppCompatActivity() {
 
@@ -11,7 +12,8 @@ class HomeActivity : AppCompatActivity() {
 
         val fragmentManager = supportFragmentManager
         val transaction = fragmentManager.beginTransaction()
-        transaction.replace(R.id.frameLayoutScene, SearchFragment.newInstance())
+        val fragment = SearchFragment()
+        transaction.replace(R.id.frameLayoutScene, fragment)
         transaction.commit()
     }
 }

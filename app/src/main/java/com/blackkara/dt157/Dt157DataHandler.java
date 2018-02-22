@@ -1,45 +1,30 @@
-package com.blackkara.dt157.cem;
+package com.blackkara.dt157;
 
 import android.util.Log;
+
+import com.blackkara.dt157.cem.ByteArrayList;
 
 /**
  * Created by blackkara on 2/21/2018.
  */
 
-public class BleDataHandleClass {
-    private static BleDataHandleClass icttHandle;
-    private BleDataHandleClass.BluetoothDataCallback callback = null;
+public class Dt157DataHandler {
+    private static Dt157DataHandler icttHandle;
+    private Dt157DataHandler.BluetoothDataCallback callback = null;
     private byte dataStartByte = -86;
     private int datalength = 11;
     private boolean debug = true;
-    private String[] hexDigits = new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
     private ByteArrayList inputbuffer = new ByteArrayList();
     private boolean isDataLogger;
-    private int syncsize = 0;
 
-    private String bytes2HexString(byte[] var1) {
-        String var2 = "";
+    public static Dt157DataHandler getInstance() {
+        Class var2 = Dt157DataHandler.class;
+        synchronized(Dt157DataHandler.class){}
 
-        for(int var3 = 0; var3 < var1.length; ++var3) {
-            String var4 = Integer.toHexString(255 & var1[var3]);
-            if(var4.length() == 1) {
-                var4 = '0' + var4;
-            }
-
-            var2 = var2 + var4.toUpperCase();
-        }
-
-        return var2;
-    }
-
-    public static BleDataHandleClass getInstance() {
-        Class var2 = BleDataHandleClass.class;
-        synchronized(BleDataHandleClass.class){}
-
-        BleDataHandleClass var1;
+        Dt157DataHandler var1;
         try {
             if(icttHandle == null) {
-                icttHandle = new BleDataHandleClass();
+                icttHandle = new Dt157DataHandler();
             }
 
             var1 = icttHandle;
@@ -90,7 +75,7 @@ public class BleDataHandleClass {
 
     private void showLog(String var1) {
         if(this.debug) {
-            Log.e("BleDataHandleClass====", var1);
+            Log.e("Dt157DataHandler====", var1);
         }
 
     }
@@ -99,7 +84,7 @@ public class BleDataHandleClass {
         this.AddBytes(var1, var1.length);
     }
 
-    public void AddBytes(byte[] var1, int var2) {
+    private void AddBytes(byte[] var1, int var2) {
         this.inputbuffer.AddRange(var1, var2);
         if(this.inputbuffer.get(0) == null) {
             this.inputbuffer.clear();
@@ -108,18 +93,7 @@ public class BleDataHandleClass {
         }
     }
 
-    public String byteToHexString(byte var1) {
-        int var2 = var1;
-        if(var1 < 0) {
-            var2 = var1 + 256;
-        }
-
-        int var3 = var2 / 16;
-        int var4 = var2 % 16;
-        return this.hexDigits[var3] + this.hexDigits[var4];
-    }
-
-    public void setOnBluetoothDataCallback(BleDataHandleClass.BluetoothDataCallback var1) {
+    public void setOnBluetoothDataCallback(Dt157DataHandler.BluetoothDataCallback var1) {
         this.callback = var1;
     }
 

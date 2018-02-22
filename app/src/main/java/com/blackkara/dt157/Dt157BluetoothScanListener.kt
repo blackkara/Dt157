@@ -8,7 +8,7 @@ import com.blackkara.dt157.events.BluetoothDeviceFoundEvent
 import com.blackkara.dt157.events.BluetoothDevicesFoundEvent
 import org.greenrobot.eventbus.EventBus
 
-class BluetoothScanListener : ScanCallback(){
+class Dt157BluetoothScanListener : ScanCallback(){
     override fun onScanResult(callbackType: Int, result: ScanResult) {
         super.onScanResult(callbackType, result)
         val event = BluetoothDeviceFoundEvent(result.device)
