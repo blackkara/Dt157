@@ -6,7 +6,12 @@ import android.util.Log
 /**
  * Created by blackkara on 2/21/2018.
  */
-class Dt157BluetoothGattCallback : BluetoothGattCallback() {
+class Dt157BluetoothGattCallback(private var listener: Dt157BluetoothGattCallback.Listener) : BluetoothGattCallback() {
+
+    interface Listener{
+        fun onBytesReceived(bytes: ByteArray)
+    }
+
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
         when (newState) {
             BluetoothProfile.STATE_CONNECTED -> {
@@ -39,7 +44,6 @@ class Dt157BluetoothGattCallback : BluetoothGattCallback() {
     }
 
     override fun onCharacteristicChanged(gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?) {
-        val value = Dt157Util.dec_hex(characteristic?.value)
-        Dt157DataHandler.getInstance().AddBytes(characteristic?.value)
+        listener.onBytesReceived(characteristic!!.value)
     }
 }

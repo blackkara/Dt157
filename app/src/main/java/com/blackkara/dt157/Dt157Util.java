@@ -24,4 +24,8 @@ public class Dt157Util {
 
         return var1;
     }
+
+    public  static int getShort(byte var1) {
+        return var1 & 255;
+    }
 }

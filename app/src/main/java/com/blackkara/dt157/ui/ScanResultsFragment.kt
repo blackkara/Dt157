@@ -8,9 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.blackkara.dt157.R
-import com.blackkara.dt157.events.BluetoothDeviceSelectedEvent
 import kotlinx.android.synthetic.main.fragment_scan.*
-import org.greenrobot.eventbus.EventBus
 
 
 class ScanResultsFragment : Fragment(), ScanResultsAdapter.Listener {
@@ -47,7 +45,7 @@ class ScanResultsFragment : Fragment(), ScanResultsAdapter.Listener {
     }
 
     override fun onDeviceSelected(device: BluetoothDevice) {
-        EventBus.getDefault().post(BluetoothDeviceSelectedEvent(device))
+
     }
 
     fun addDevice(device: BluetoothDevice){

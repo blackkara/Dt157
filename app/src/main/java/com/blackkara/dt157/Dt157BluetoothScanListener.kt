@@ -3,33 +3,27 @@ package com.blackkara.dt157
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
-import android.util.Log
-import com.blackkara.dt157.events.BluetoothDeviceFoundEvent
-import com.blackkara.dt157.events.BluetoothDevicesFoundEvent
-import org.greenrobot.eventbus.EventBus
 
-class Dt157BluetoothScanListener : ScanCallback(){
+class Dt157BluetoothScanListener(private var listener: Dt157BluetoothScanListener.Listener) : ScanCallback(){
+    interface Listener{
+        fun onBluetoothDevicesFound(device: Array<BluetoothDevice>)
+        fun onScanFailed(errorCode: Int)
+    }
+
     override fun onScanResult(callbackType: Int, result: ScanResult) {
         super.onScanResult(callbackType, result)
-        val event = BluetoothDeviceFoundEvent(result.device)
-        EventBus.getDefault().post(event)
-        Log.i(Constants.TAG, "Device found : ${result.device}")
+        listener.onBluetoothDevicesFound(arrayOf(result.device))
     }
 
     override fun onBatchScanResults(results: MutableList<ScanResult>) {
         super.onBatchScanResults(results)
         val devices = ArrayList<BluetoothDevice>()
-        for (result in results) {
-            devices.add(result.device)
-            Log.i(Constants.TAG, "Device found : ${result.device}")
-        }
+        results.mapTo(devices) { it.device }
 
-        val event = BluetoothDevicesFoundEvent(devices)
-        EventBus.getDefault().post(event)
+        listener.onBluetoothDevicesFound(devices.toTypedArray())
     }
 
     override fun onScanFailed(errorCode: Int) {
-        super.onScanFailed(errorCode)
-        Log.e(Constants.TAG, "ScanCallback error code: " + errorCode)
+        listener.onScanFailed(errorCode)
     }
 }
