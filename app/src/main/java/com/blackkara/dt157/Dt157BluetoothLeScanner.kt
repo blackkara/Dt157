@@ -4,7 +4,8 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 
-class Dt157BluetoothScan(private var callback: Dt157BluetoothScan.Listener) : ScanCallback(){
+class Dt157BluetoothLeScanner(private var callback: Dt157BluetoothLeScanner.Listener) : ScanCallback(){
+
     interface Listener{
         fun onBluetoothDevicesFound(device: Array<BluetoothDevice>)
         fun onScanFailed(errorCode: Int)

@@ -7,10 +7,12 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanSettings
+import android.bluetooth.le.ScanSettings.SCAN_MODE_LOW_LATENCY
 import android.content.Context
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,32 +20,40 @@ import com.blackkara.dt157.*
 import com.blackkara.dt157.cem.BaseIcttDataObj
 import kotlinx.android.synthetic.main.fragment_search.*
 
-class SearchFragment : Fragment() {
+class SearchFragment : Fragment(), ScanResultsAdapter.Listener {
     private val mTextScan: String by lazy { getString(R.string.scan) }
     private val mTextStop: String by lazy { getString(R.string.stop) }
-    private val mHandler = Handler()
-    private var mScanning = false
-    private var mScanResultsFragment: ScanResultsFragment? = null
     private var mBluetoothAdapter: BluetoothAdapter? = null
     private var mBluetoothGatt: BluetoothGatt? = null
-    private lateinit var mBluetoothManager: BluetoothManager
-    private lateinit var mBluetoothScanner: BluetoothLeScanner
-    private lateinit var mBluetoothScanSettings: ScanSettings
-    private lateinit var mBluetoothScanFilters: MutableList<ScanFilter>
+    private var mBluetoothManager: BluetoothManager? = null
+    private var mBluetoothScanner: BluetoothLeScanner? = null
+    private var mBluetoothScanSettings: ScanSettings? = null
+    private var mBluetoothScanFilters: MutableList<ScanFilter>? = null
+    private var mDt157BluetoothGatt: Dt157BluetoothGatt? = null
+    private var mDt157BluetoothLeScanner: Dt157BluetoothLeScanner? = null
+    private var mDt157BluetoothBytesHandler: Dt157BluetoothBytesHandler? = null
+    private val mHandler = Handler()
+    private var mScanning = false
 
-    private var mBluetoothScan: Dt157BluetoothScan? = null
-    private var mBluetoothGattCallback: Dt157BluetoothGatt? = null
-    private var mBluetoothBytesHandler: Dt157BluetoothBytesHandler? = null
+    private lateinit var mScanResults: ArrayList<BluetoothDevice>
+    private lateinit var mScanResultsAdapter: ScanResultsAdapter
+
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
-        mBluetoothManager = context.applicationContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        mBluetoothAdapter = mBluetoothManager.adapter
+        mBluetoothManager = context.applicationContext
+                .getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        mBluetoothAdapter = mBluetoothManager!!.adapter
         mBluetoothScanner = mBluetoothAdapter!!.bluetoothLeScanner
         mBluetoothScanFilters = ArrayList()
-        mBluetoothScanSettings  = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
-        mBluetoothScan = Dt157BluetoothScan(mBluetooth157ScanListenerCallback)
-        mBluetoothGattCallback = Dt157BluetoothGatt(mBluetoothGattCallbackListener)
-        mBluetoothBytesHandler = Dt157BluetoothBytesHandler(mDt157BytesHandlerListener)
+        mBluetoothScanSettings  = ScanSettings.Builder().setScanMode(SCAN_MODE_LOW_LATENCY).build()
+        mDt157BluetoothLeScanner = Dt157BluetoothLeScanner(mBluetooth157ScanListenerCallback)
+        mDt157BluetoothGatt = Dt157BluetoothGatt(mBluetoothGattCallbackListener)
+        mDt157BluetoothBytesHandler = Dt157BluetoothBytesHandler(mDt157BytesHandlerListener)
+
+
+        mScanResults = arrayListOf()
+        mScanResultsAdapter = ScanResultsAdapter(mScanResults, this)
+        recyclerViewScanResults.adapter = mScanResultsAdapter
 
         buttonScan.setOnClickListener {
             if(!mScanning){
@@ -56,14 +66,11 @@ class SearchFragment : Fragment() {
 
             scanLeDevice(mScanning)
         }
-
-        showSearchResults()
     }
-
 
     private var mBluetoothGattCallbackListener = object : Dt157BluetoothGatt.Listener {
         override fun onBytesReceived(bytes: ByteArray) {
-            mBluetoothBytesHandler?.handleBytes(bytes)
+            mDt157BluetoothBytesHandler?.handleBytes(bytes)
         }
     }
 
@@ -72,21 +79,15 @@ class SearchFragment : Fragment() {
         override fun onDt157DataReady(value: BaseIcttDataObj) {}
     }
 
-    private var mBluetooth157ScanListenerCallback = object : Dt157BluetoothScan.Listener {
-        override fun onBluetoothDevicesFound(device: Array<BluetoothDevice>) {}
-        override fun onScanFailed(errorCode: Int) {}
-    }
-
-    private fun showSearchResults(){
-        val tag = ScanResultsFragment::class.java.simpleName
-        val fragmentManager = activity.supportFragmentManager
-
-        val searchResultsFragment = fragmentManager.findFragmentByTag(tag)
-        if(searchResultsFragment == null){
-            mScanResultsFragment = ScanResultsFragment.newInstance()
-            val transaction = fragmentManager.beginTransaction()
-            transaction.add(R.id.frameLayoutScanResults, mScanResultsFragment, tag)
-            transaction.commit()
+    private var mBluetooth157ScanListenerCallback = object : Dt157BluetoothLeScanner.Listener {
+        override fun onBluetoothDevicesFound(device: Array<BluetoothDevice>) {
+            device.forEach {
+                Log.d(Constants.TAG, "Device [${it.address}] ${it.name}")
+                mScanResultsAdapter.addDevice(it)
+            }
+        }
+        override fun onScanFailed(errorCode: Int) {
+            Log.d(Constants.TAG, "Something went wrong when scanning devices")
         }
     }
 
@@ -110,29 +111,23 @@ class SearchFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?, savedInstanceState: Bundle?): View? =
             inflater!!.inflate(R.layout.fragment_search, container, false)
 
-    private fun addDevice(device: BluetoothDevice){
-        mScanResultsFragment?.addDevice(device)
-    }
-
     private fun scanLeDevice(enable: Boolean) {
         if (enable) {
             mHandler.postDelayed({
                 mScanning = false
                 buttonScan.text = mTextScan
-                mBluetoothScanner.stopScan(mBluetoothScan)
+                mBluetoothScanner?.stopScan(mDt157BluetoothLeScanner)
             }, Constants.SCAN_PERIOD)
-            mBluetoothScanner.startScan(mBluetoothScanFilters, mBluetoothScanSettings, mBluetoothScan)
+            mBluetoothScanner?.startScan(mBluetoothScanFilters, mBluetoothScanSettings, mDt157BluetoothLeScanner)
         } else {
-            mBluetoothScanner.stopScan(mBluetoothScan)
+            mBluetoothScanner?.stopScan(mDt157BluetoothLeScanner)
         }
     }
 
-    private fun connectToDevice(device: BluetoothDevice) {
+    override fun onDeviceSelected(device: BluetoothDevice) {
         if (mBluetoothGatt == null) {
-            mBluetoothGatt = device.connectGatt(context.applicationContext,
-                    false,
-                    mBluetoothGattCallback)
-            scanLeDevice(false)// will stop after first device detection
+            mBluetoothGatt = device.connectGatt(context.applicationContext, false, mDt157BluetoothGatt)
+            scanLeDevice(false)
         }
     }
 }

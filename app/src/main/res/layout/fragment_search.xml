@@ -5,10 +5,15 @@
     android:layout_height="match_parent"
     tools:context="com.blackkara.dt157.ui.SearchFragment">
 
-    <FrameLayout
-        android:id="@+id/frameLayoutScanResults"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recyclerViewScanResults"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@+id/buttonScan"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

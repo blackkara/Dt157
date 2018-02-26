@@ -10,10 +10,11 @@ class HomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
 
-        val fragmentManager = supportFragmentManager
-        val transaction = fragmentManager.beginTransaction()
-        val fragment = SearchFragment()
-        transaction.replace(R.id.frameLayoutScene, fragment)
-        transaction.commit()
+        val tag = SearchFragment::class.java.simpleName
+        if(supportFragmentManager.findFragmentByTag(tag) == null){
+            val transaction = supportFragmentManager.beginTransaction()
+            transaction.replace(R.id.frameLayoutScene, SearchFragment(), tag)
+            transaction.commit()
+        }
     }
 }
