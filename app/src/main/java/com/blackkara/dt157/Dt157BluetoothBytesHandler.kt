@@ -3,10 +3,6 @@ package com.blackkara.dt157
 import com.blackkara.dt157.cem.BaseIcttDataObj
 import com.blackkara.dt157.cem.ICTTObj
 
-/**
- * Created by blackkara on 2/25/2018.
- */
-
 class Dt157BluetoothBytesHandler(private var listener: Listener) {
 
     companion object {

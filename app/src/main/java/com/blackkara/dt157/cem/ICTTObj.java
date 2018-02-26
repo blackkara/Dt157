@@ -6,6 +6,7 @@ import java.math.BigInteger;
 
 /**
  * Created by blackkara on 2/21/2018.
+ * This file has decompiled methods, so variables aren't meaningful
  */
 
 public class ICTTObj extends BaseIcttDataObj {

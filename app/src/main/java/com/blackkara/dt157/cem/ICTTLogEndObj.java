@@ -4,6 +4,7 @@ import com.blackkara.dt157.Dt157Util;
 
 /**
  * Created by blackkara on 2/21/2018.
+ * This file has decompiled methods, so variables aren't meaningful
  */
 
 public class ICTTLogEndObj extends BaseIcttDataObj {

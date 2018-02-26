@@ -3,11 +3,7 @@ package com.blackkara.dt157
 import android.bluetooth.*
 import android.util.Log
 
-/**
- * Created by blackkara on 2/21/2018.
- */
-class Dt157BluetoothGattCallback(private var listener: Dt157BluetoothGattCallback.Listener) : BluetoothGattCallback() {
-
+class Dt157BluetoothGatt(private var listener: Dt157BluetoothGatt.Listener) : BluetoothGattCallback() {
     interface Listener{
         fun onBytesReceived(bytes: ByteArray)
     }
@@ -26,17 +22,13 @@ class Dt157BluetoothGattCallback(private var listener: Dt157BluetoothGattCallbac
     // Where the magic happens
     override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
         gatt.services.forEach {
-            val serviceUUID = it.uuid
-            Log.d(Constants.TAG, "SERVICE $serviceUUID")
+            Log.d(Constants.TAG, "SERVICE {${it.uuid}}")
             it.characteristics.forEach {
-                val characteristic = it
-                val properties = it.properties
-                if(properties == 16){
-                    gatt.setCharacteristicNotification(characteristic, true)
+                if(it.properties == 16){
+                    gatt.setCharacteristicNotification(it, true)
                     it.descriptors.forEach {
-                        val descriptor = it
-                        descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
-                        gatt.writeDescriptor(descriptor)
+                        it.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                        gatt.writeDescriptor(it)
                     }
                 }
             }

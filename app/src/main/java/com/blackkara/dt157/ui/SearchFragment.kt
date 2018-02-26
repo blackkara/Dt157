@@ -31,8 +31,8 @@ class SearchFragment : Fragment() {
     private lateinit var mBluetoothScanSettings: ScanSettings
     private lateinit var mBluetoothScanFilters: MutableList<ScanFilter>
 
-    private var mBluetoothScanListener: Dt157BluetoothScanListener? = null
-    private var mBluetoothGattCallback: Dt157BluetoothGattCallback? = null
+    private var mBluetoothScan: Dt157BluetoothScan? = null
+    private var mBluetoothGattCallback: Dt157BluetoothGatt? = null
     private var mBluetoothBytesHandler: Dt157BluetoothBytesHandler? = null
 
     override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
@@ -41,8 +41,8 @@ class SearchFragment : Fragment() {
         mBluetoothScanner = mBluetoothAdapter!!.bluetoothLeScanner
         mBluetoothScanFilters = ArrayList()
         mBluetoothScanSettings  = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
-        mBluetoothScanListener = Dt157BluetoothScanListener(mBluetooth157ScanListenerCallback)
-        mBluetoothGattCallback = Dt157BluetoothGattCallback(mBluetoothGattCallbackListener)
+        mBluetoothScan = Dt157BluetoothScan(mBluetooth157ScanListenerCallback)
+        mBluetoothGattCallback = Dt157BluetoothGatt(mBluetoothGattCallbackListener)
         mBluetoothBytesHandler = Dt157BluetoothBytesHandler(mDt157BytesHandlerListener)
 
         buttonScan.setOnClickListener {
@@ -61,7 +61,7 @@ class SearchFragment : Fragment() {
     }
 
 
-    private var mBluetoothGattCallbackListener = object : Dt157BluetoothGattCallback.Listener {
+    private var mBluetoothGattCallbackListener = object : Dt157BluetoothGatt.Listener {
         override fun onBytesReceived(bytes: ByteArray) {
             mBluetoothBytesHandler?.handleBytes(bytes)
         }
@@ -72,7 +72,7 @@ class SearchFragment : Fragment() {
         override fun onDt157DataReady(value: BaseIcttDataObj) {}
     }
 
-    private var mBluetooth157ScanListenerCallback = object :Dt157BluetoothScanListener.Listener {
+    private var mBluetooth157ScanListenerCallback = object : Dt157BluetoothScan.Listener {
         override fun onBluetoothDevicesFound(device: Array<BluetoothDevice>) {}
         override fun onScanFailed(errorCode: Int) {}
     }
@@ -119,18 +119,17 @@ class SearchFragment : Fragment() {
             mHandler.postDelayed({
                 mScanning = false
                 buttonScan.text = mTextScan
-                mBluetoothScanner.stopScan(mBluetoothScanListener)
+                mBluetoothScanner.stopScan(mBluetoothScan)
             }, Constants.SCAN_PERIOD)
-            mBluetoothScanner.startScan(mBluetoothScanFilters, mBluetoothScanSettings, mBluetoothScanListener)
+            mBluetoothScanner.startScan(mBluetoothScanFilters, mBluetoothScanSettings, mBluetoothScan)
         } else {
-            mBluetoothScanner.stopScan(mBluetoothScanListener)
+            mBluetoothScanner.stopScan(mBluetoothScan)
         }
     }
 
     private fun connectToDevice(device: BluetoothDevice) {
         if (mBluetoothGatt == null) {
-            mBluetoothGatt = device.connectGatt(
-                    context.applicationContext,
+            mBluetoothGatt = device.connectGatt(context.applicationContext,
                     false,
                     mBluetoothGattCallback)
             scanLeDevice(false)// will stop after first device detection
