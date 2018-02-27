@@ -52,7 +52,7 @@ class SearchFragment : Fragment(), ScanResultsAdapter.Listener {
 
 
         mScanResults = arrayListOf()
-        mScanResultsAdapter = ScanResultsAdapter(mScanResults, this)
+        mScanResultsAdapter = ScanResultsAdapter(mScanResults, true,this)
         recyclerViewScanResults.adapter = mScanResultsAdapter
 
         buttonScan.setOnClickListener {
@@ -82,7 +82,6 @@ class SearchFragment : Fragment(), ScanResultsAdapter.Listener {
     private var mBluetooth157ScanListenerCallback = object : Dt157BluetoothLeScanner.Listener {
         override fun onBluetoothDevicesFound(device: Array<BluetoothDevice>) {
             device.forEach {
-                Log.d(Constants.TAG, "Device [${it.address}] ${it.name}")
                 mScanResultsAdapter.addDevice(it)
             }
         }

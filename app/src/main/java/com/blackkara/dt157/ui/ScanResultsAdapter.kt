@@ -15,16 +15,33 @@ import kotlinx.android.synthetic.main.scan_result_item.view.*
  */
 class ScanResultsAdapter(
         private var devices: MutableList<BluetoothDevice>,
+        private var showOnlyNamedDevices : Boolean = true,
         private var listener: Listener) : RecyclerView.Adapter<ScanResultsAdapter.ScanResultsViewHolder>() {
 
     interface Listener{
         fun onDeviceSelected(device: BluetoothDevice)
     }
 
-    public fun addDevice(device: BluetoothDevice){
+    private var mSize = 0
+    fun showOnlyNamedDevices(show: Boolean){
+        val tempDevices = mutableListOf<BluetoothDevice>()
+        devices.forEach {
+            if(deviceHasName(it)){
+                tempDevices.add(it)
+            }
+        }
+    }
+
+    private fun deviceHasName(device: BluetoothDevice): Boolean = !device.name.isNullOrEmpty()
+
+    fun addDevice(device: BluetoothDevice){
         if(!devices.contains(device)){
+            if(showOnlyNamedDevices && !deviceHasName(device)){
+                return
+            }
             devices.add(device)
             notifyDataSetChanged()
+            Log.d(Constants.TAG, "Device [${device.address}] ${device.name}")
         }
     }
 
@@ -33,9 +50,7 @@ class ScanResultsAdapter(
         holder.bind(device, listener)
     }
 
-    override fun getItemCount(): Int {
-        return devices.size
-    }
+    override fun getItemCount(): Int = mSize
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ScanResultsViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.scan_result_item, parent,false)
