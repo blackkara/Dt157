@@ -4,7 +4,9 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 
-class Dt157BluetoothLeScanner(private var callback: Dt157BluetoothLeScanner.Listener) : ScanCallback(){
+class Dt157BluetoothLeScanner(
+        private var showOnlyNamedDevices : Boolean = false,
+        private var listener: Dt157BluetoothLeScanner.Listener) : ScanCallback(){
 
     interface Listener{
         fun onBluetoothDevicesFound(device: Array<BluetoothDevice>)
@@ -13,18 +15,35 @@ class Dt157BluetoothLeScanner(private var callback: Dt157BluetoothLeScanner.List
 
     override fun onScanResult(callbackType: Int, result: ScanResult) {
         super.onScanResult(callbackType, result)
-        callback.onBluetoothDevicesFound(arrayOf(result.device))
+        if(isDeviceCandidate(result.device)){
+            listener.onBluetoothDevicesFound(arrayOf(result.device))
+        }
     }
 
     override fun onBatchScanResults(results: MutableList<ScanResult>) {
         super.onBatchScanResults(results)
         val devices = ArrayList<BluetoothDevice>()
-        results.mapTo(devices) { it.device }
+        results.forEach {
+            if(isDeviceCandidate(it.device)){
+                devices.add(it.device)
+            }
+        }
 
-        callback.onBluetoothDevicesFound(devices.toTypedArray())
+        listener.onBluetoothDevicesFound(devices.toTypedArray())
     }
 
     override fun onScanFailed(errorCode: Int) {
-        callback.onScanFailed(errorCode)
+        listener.onScanFailed(errorCode)
     }
+
+
+    private fun isDeviceCandidate(device: BluetoothDevice): Boolean{
+        if(showOnlyNamedDevices and !deviceHasName(device)){
+            return false
+        }
+
+        return true
+    }
+
+    private fun deviceHasName(device: BluetoothDevice): Boolean = !device.name.isNullOrEmpty()
 }

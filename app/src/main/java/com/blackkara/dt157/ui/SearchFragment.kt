@@ -46,13 +46,13 @@ class SearchFragment : Fragment(), ScanResultsAdapter.Listener {
         mBluetoothScanner = mBluetoothAdapter!!.bluetoothLeScanner
         mBluetoothScanFilters = ArrayList()
         mBluetoothScanSettings  = ScanSettings.Builder().setScanMode(SCAN_MODE_LOW_LATENCY).build()
-        mDt157BluetoothLeScanner = Dt157BluetoothLeScanner(mBluetooth157ScanListenerCallback)
+        mDt157BluetoothLeScanner = Dt157BluetoothLeScanner(true, mBluetooth157ScanListenerCallback)
         mDt157BluetoothGatt = Dt157BluetoothGatt(mBluetoothGattCallbackListener)
         mDt157BluetoothBytesHandler = Dt157BluetoothBytesHandler(mDt157BytesHandlerListener)
 
 
         mScanResults = arrayListOf()
-        mScanResultsAdapter = ScanResultsAdapter(mScanResults, true,this)
+        mScanResultsAdapter = ScanResultsAdapter(mScanResults, this)
         recyclerViewScanResults.adapter = mScanResultsAdapter
 
         buttonScan.setOnClickListener {
