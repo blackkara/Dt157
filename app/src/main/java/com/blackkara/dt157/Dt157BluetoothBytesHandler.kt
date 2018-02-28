@@ -49,10 +49,18 @@ class Dt157BluetoothBytesHandler(private var listener: Listener) {
 
                 if(mData.size >= mDataLength){
                     val data = copy(mDataLength)
-                    process()
+                   processData(data)
 
                     listener.onBytesCompleted(data)
                     mData.clear()
+                }
+            } else{
+                while (mData.size > 0){
+                    if(mData.first() == START_BYTE){
+                        return
+                    }
+
+                    mData.removeAt(0)
                 }
             }
         }
